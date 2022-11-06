@@ -26,3 +26,7 @@ def send(event=None):
     if msg == "{quit}":
         client_socket.close()
         root.quit()
+
+def on_closing(event=None):
+    my_msg.set("{quit}")
+    send()

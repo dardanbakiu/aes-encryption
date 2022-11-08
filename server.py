@@ -3,6 +3,10 @@ import socket
 from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 import sys
+import random
+import string
+
+aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
 
 def accept_incoming_connections():
@@ -11,7 +15,7 @@ def accept_incoming_connections():
         client, client_address = SERVER.accept()
         print("%s:%s eshte lidhur." % client_address)
         client.send(
-            bytes("Pershendetje, shtyp emrin i cili do te shfaqet dhe pastaj shtyp butonin 'Enter' per te vazhduar!", "utf8"))
+            bytes('\n'.join(["Pershendetje, shtyp emrin i cili do te shfaqet dhe pastaj shtyp butonin 'Enter' per te vazhduar!", aesKey]), "utf8"))
         addresses[client] = client_address
         Thread(target=handle_client, args=(client,)).start()
 

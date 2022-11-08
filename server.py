@@ -46,10 +46,11 @@ def broadcast(msg, prefix=""):
     for sock in clients:
         sock.send(bytes(prefix, "utf8")+msg)
     # Dhe ruaje ate tek nje text file
-    with open('mesazhet.txt', 'a') as saveAt:
-        saveAt.write('Perdoruesi %s dergoi mesazhin: %s' % (prefix, msg))
-        saveAt.write('\n')
-        saveAt.close()
+    if prefix != '':
+        with open('mesazhet.txt', 'a') as saveAt:
+            saveAt.write('Mesazhi i derguar nga %s %s' % (prefix, msg))
+            saveAt.write('\n')
+            saveAt.close()
 
 
 clients = {}

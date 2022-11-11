@@ -22,7 +22,7 @@ def accept_incoming_connections():
 
 def handle_client(client):  # Argumenti eshte soketa e klientit.
     name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Miresevjen %s! Nese deshiron te largohesh, vetem shkruaj {quit}!' % name
+    welcome = 'Miresevjen %s! Nese deshiron te largohesh, vetem shkruaj {dil}!' % name
     client.send(bytes(welcome, "utf8"))
     msg = "%s eshte tani i lidhur!" % name
     broadcast(bytes(msg, "utf8"))
@@ -30,10 +30,10 @@ def handle_client(client):  # Argumenti eshte soketa e klientit.
 
     while True:
         msg = client.recv(BUFSIZ)
-        if msg != bytes("{quit}", "utf8"):
+        if msg != bytes("{dil}", "utf8"):
             broadcast(msg, name+": ")
         else:
-            client.send(bytes("{quit}", "utf8"))
+            client.send(bytes("{dil}", "utf8"))
             client.close()
             del clients[client]
             if len(clients) == 0:

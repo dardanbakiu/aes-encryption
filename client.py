@@ -2,6 +2,7 @@ import socket
 from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 from tkinter import *
+from AESencrypt import encrypt
 
 firstclick = True
 
@@ -25,12 +26,12 @@ def send(event=None):
     msg = my_msg.get()
     my_msg.set("")  # Clears input field.
     client_socket.send(bytes(msg, "utf8"))
-    if msg == "{quit}":
+    if msg == "{dil}":
         client_socket.close()
         root.quit()
 
 def on_closing(event=None):
-    my_msg.set("{quit}")
+    my_msg.set("{dil}")
     send()
 
 root = Tk()

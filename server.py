@@ -5,8 +5,10 @@ from threading import Thread
 import sys
 import random
 import string
+from AESdecrypt import decrypt
 
 aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+aesKey = f"aesKey:{aesKey}"
 
 
 def accept_incoming_connections():

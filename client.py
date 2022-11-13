@@ -13,11 +13,17 @@ def on_entry_click(event):
         firstclick = False
         entry_field.delete(0, "end")
 
+key = []
+
 def receive():
     while True:
         try:
             msg = client_socket.recv(BUFSIZ).decode("utf8")
             msg_list.insert(END, msg)
+
+            if not key:
+              key.append(msg.split('aesKey:').pop())
+
         except OSError:
             break
 

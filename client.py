@@ -3,6 +3,7 @@ from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 from tkinter import *
 from AESencrypt import encrypt
+from AESdecrypt import decrypt
 
 firstclick = True
 
@@ -14,12 +15,27 @@ def on_entry_click(event):
         entry_field.delete(0, "end")
 
 key = []
+messages = []
 
 def receive():
     while True:
         try:
             msg = client_socket.recv(BUFSIZ).decode("utf8")
-            msg_list.insert(END, msg)
+
+            if len(messages) > 2: 
+              msg = msg.split(": ")
+              print('error is appearing here')
+              print(msg)
+              name = msg[0]
+              encMsg = msg[1]
+              decMsg = decrypt(key[0], encMsg)
+              fullMsg = f"{name}: {decMsg}"
+
+              msg_list.insert(END, fullMsg)
+              messages.append(fullMsg)
+            else:
+              msg_list.insert(END, msg)
+              messages.append(msg)
 
             if not key:
               key.append(msg.split('aesKey:').pop())
@@ -29,10 +45,11 @@ def receive():
 
 
 def send(event=None):
-    msg = my_msg.get()
+    msg = encrypt(my_msg.get(), key[0])
     my_msg.set("")  # Clears input field.
     client_socket.send(bytes(msg, "utf8"))
-    if msg == "{dil}":
+    
+    if  msg == "{dil}":
         client_socket.close()
         root.quit()
 

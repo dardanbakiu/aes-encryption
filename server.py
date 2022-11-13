@@ -6,9 +6,10 @@ import sys
 import random
 import string
 from AESdecrypt import decrypt
+from AESencrypt import encrypt
 
 aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-aesKey = f"aesKey:{aesKey}"
+aesKeyModified = f"aesKey:{aesKey}"
 
 
 def accept_incoming_connections():
@@ -17,14 +18,14 @@ def accept_incoming_connections():
         client, client_address = SERVER.accept()
         print("%s:%s eshte lidhur." % client_address)
         client.send(
-            bytes('\n'.join(["Pershendetje, shtyp emrin i cili do te shfaqet dhe pastaj shtyp butonin 'Enter' per te vazhduar!", aesKey]), "utf8"))
+            bytes('\n'.join(["Pershendetje, shtyp emrin i cili do te shfaqet dhe pastaj shtyp butonin 'Enter' per te vazhduar!", aesKeyModified]), "utf8"))
         addresses[client] = client_address
         Thread(target=handle_client, args=(client,)).start()
 
 
 def handle_client(client):  # Argumenti eshte soketa e klientit.
-    name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Miresevjen %s! Nese deshiron te largohesh, vetem shkruaj {dil}!' % name
+    name = decrypt(aesKey, client.recv(BUFSIZ).decode("utf8"))
+    welcome = encrypt('Miresevjen %s! Nese deshiron te largohesh, vetem shkruaj {dil}!' % name, aesKey)
     client.send(bytes(welcome, "utf8"))
     msg = "%s eshte tani i lidhur!" % name
     broadcast(bytes(msg, "utf8"))

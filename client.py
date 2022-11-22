@@ -1,29 +1,46 @@
 import socket
 from socket import AF_INET, SOCK_STREAM
+import string
 from threading import Thread
 from tkinter import *
 from AESencrypt import encrypt
+from AESdecrypt import decrypt
 
 firstclick = True
 
-def on_entry_click(event):        
+aesKey = ''
+
+def on_entry_click(event):
     global firstclick
 
     if firstclick:
         firstclick = False
         entry_field.delete(0, "end")
 
+
 def receive():
     while True:
         try:
-            msg = client_socket.recv(BUFSIZ).decode("utf8")
-            msg_list.insert(END, msg)
+            global aesKey
+            if aesKey == '':
+                msg, getAesKey = client_socket.recv(
+                    BUFSIZ).decode("utf8").split('\n')
+                aesKey = getAesKey
+                print(aesKey)
+                msg_list.insert(END, msg)
+            else:
+                #encMsg = client_socket.recv(BUFSIZ).decode("utf8")
+                #dcMsg = decrypt(encMsg, asesKey)
+                #print(dcMsg)
+                msg = client_socket.recv(BUFSIZ).decode("utf8")
+                msg_list.insert(END, msg)
         except OSError:
             break
 
 
 def send(event=None):
-    msg = my_msg.get()
+    global aesKey
+    msg = encrypt(my_msg.get(), aesKey)
     my_msg.set("")  # Clears input field.
     client_socket.send(bytes(msg, "utf8"))
     if msg == "{dil}":
@@ -42,7 +59,7 @@ my_msg = StringVar()  # For the messages to be sent.
 my_msg.set("Shkruani mesazhet këtu.")
 scrollbar = Scrollbar(messages_frame)  # To navigate through past messages.
 # Following will contain the messages.
-msg_list = Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
+msg_list = Listbox(messages_frame, height=25, width=75, yscrollcommand=scrollbar.set)
 scrollbar.pack(side=RIGHT, fill=Y)
 msg_list.pack(side=LEFT, fill=BOTH)
 msg_list.pack()

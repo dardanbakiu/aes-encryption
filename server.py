@@ -1,62 +1,51 @@
-# Pjesa e serverit
+#!/usr/bin/env python3
+"""Server for multithreaded (asynchronous) chat application."""
 import socket
 from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 import sys
-import random
-import string
-
-aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-
 
 def accept_incoming_connections():
-    # Funksioni kur ndokush ben join
+    """Sets up handling for incoming clients."""
     while True:
         client, client_address = SERVER.accept()
-        print("%s:%s eshte lidhur." % client_address)
-        client.send(
-            bytes('\n'.join(["Pershendetje, shtyp emrin i cili do te shfaqet dhe pastaj shtyp butonin 'Enter' per te vazhduar!", aesKey]), "utf8"))
+        print("%s:%s has connected." % client_address)
+        client.send(bytes("Shkruaj emrin: ", "utf8"))
         addresses[client] = client_address
         Thread(target=handle_client, args=(client,)).start()
 
 
-def handle_client(client):  # Argumenti eshte soketa e klientit.
+def handle_client(client):  # Takes client socket as argument.
+    """Handles a single client connection."""
     name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Miresevjen %s! Nese deshiron te largohesh, vetem shkruaj {dil}!' % name
+    welcome = 'Pershendetje %s! shkruaj {quit} qe te dilni nga chati.' % name
     client.send(bytes(welcome, "utf8"))
-    msg = "%s eshte tani i lidhur!" % name
+    msg = "%s has joined the chat!" % name
     broadcast(bytes(msg, "utf8"))
     clients[client] = name
 
     while True:
         msg = client.recv(BUFSIZ)
-        if msg != bytes("{dil}", "utf8"):
+        if msg != bytes("{quit}", "utf8"):
             broadcast(msg, name+": ")
         else:
-            client.send(bytes("{dil}", "utf8"))
+            client.send(bytes("{quit}", "utf8"))
             client.close()
             del clients[client]
             if len(clients) == 0:
                 SERVER.close()
                 sys.exit(0)
                 break
-            broadcast(bytes("%s u shkyq!" % name, "utf8"))
+            broadcast(bytes("%s has left the chat." % name, "utf8"))
             break
 
 
-# prefix perdoret per identifikim te emrit te perdoruesit.
-def broadcast(msg, prefix=""):
-    # Dergo mesazhin tek te gjithe klientet e lidhur dhe ruaje tek nje file
+def broadcast(msg, prefix=""):  # prefix is for name identification.
+    """Broadcasts a message to all the clients."""
     for sock in clients:
         sock.send(bytes(prefix, "utf8")+msg)
-    # Dhe ruaje ate tek nje text file
-    if prefix != '':
-        with open('mesazhet.txt', 'a') as saveAt:
-            saveAt.write('Mesazhi i derguar nga %s %s' % (prefix, msg))
-            saveAt.write('\n')
-            saveAt.close()
 
-
+        
 clients = {}
 addresses = {}
 
@@ -71,7 +60,7 @@ SERVER.bind(ADDR)
 
 if __name__ == "__main__":
     SERVER.listen(5)
-    print("Duke pritur per lidhje nga klientet...")
+    print("Waiting for connection...")
     ACCEPT_THREAD = Thread(target=accept_incoming_connections)
     ACCEPT_THREAD.start()
     ACCEPT_THREAD.join()

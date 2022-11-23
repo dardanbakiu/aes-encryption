@@ -1,54 +1,44 @@
+#!/usr/bin/env python3
+"""Script for Tkinter GUI chat client."""
 import socket
 from socket import AF_INET, SOCK_STREAM
-import string
 from threading import Thread
 from tkinter import *
-from AESencrypt import encrypt
-from AESdecrypt import decrypt
 
 firstclick = True
 
-aesKey = ''
-
 def on_entry_click(event):
+    """function that gets called whenever entry1 is clicked"""        
     global firstclick
 
-    if firstclick:
+    if firstclick: # if this is the first time they clicked it
         firstclick = False
-        entry_field.delete(0, "end")
+        entry_field.delete(0, "end") # delete all the text in the entry
 
 
 def receive():
+    """Handles receiving of messages."""
     while True:
         try:
-            global aesKey
-            if aesKey == '':
-                msg, getAesKey = client_socket.recv(
-                    BUFSIZ).decode("utf8").split('\n')
-                aesKey = getAesKey
-                print(aesKey)
-                msg_list.insert(END, msg)
-            else:
-                #encMsg = client_socket.recv(BUFSIZ).decode("utf8")
-                #dcMsg = decrypt(encMsg, asesKey)
-                #print(dcMsg)
-                msg = client_socket.recv(BUFSIZ).decode("utf8")
-                msg_list.insert(END, msg)
-        except OSError:
+            msg = client_socket.recv(BUFSIZ).decode("utf8")
+            msg_list.insert(END, msg)
+        except OSError:  # Possibly client has left the chat.
             break
 
 
-def send(event=None):
-    global aesKey
-    msg = encrypt(my_msg.get(), aesKey)
+def send(event=None):  # event is passed by binders.
+    """Handles sending of messages."""
+    msg = my_msg.get()
     my_msg.set("")  # Clears input field.
     client_socket.send(bytes(msg, "utf8"))
-    if msg == "{dil}":
+    if msg == "{quit}":
         client_socket.close()
         root.quit()
 
+
 def on_closing(event=None):
-    my_msg.set("{dil}")
+    """This function is to be called when the window is closed."""
+    my_msg.set("{quit}")
     send()
 
 root = Tk()
@@ -56,10 +46,10 @@ root.title("ChatIO")
 
 messages_frame = Frame(root)
 my_msg = StringVar()  # For the messages to be sent.
-my_msg.set("Shkruani mesazhet këtu.")
+my_msg.set("Type your messages here.")
 scrollbar = Scrollbar(messages_frame)  # To navigate through past messages.
 # Following will contain the messages.
-msg_list = Listbox(messages_frame, height=25, width=75, yscrollcommand=scrollbar.set)
+msg_list = Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
 scrollbar.pack(side=RIGHT, fill=Y)
 msg_list.pack(side=LEFT, fill=BOTH)
 msg_list.pack()
@@ -69,12 +59,12 @@ entry_field = Entry(root, textvariable=my_msg)
 entry_field.bind('<FocusIn>', on_entry_click)
 entry_field.bind("<Return>", send)
 entry_field.pack()
-send_button = Button(root, text="Dërgo", command=send)
+send_button = Button(root, text="Send", command=send)
 send_button.pack()
 
 root.protocol("WM_DELETE_WINDOW", on_closing)
 
-#Socket 
+#----Socket code----
 HOST = 'localhost'
 PORT = 5000
 

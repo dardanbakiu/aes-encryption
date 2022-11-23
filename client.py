@@ -30,9 +30,6 @@ def receive():
                 msg = msg.split('#ENCRYPTION_KEY:')
                 msg_list.insert(END, msg[0])
                 aesKey.append(msg.pop())
-            elif(re.search('#ENCRYPTION_KEY:', msg)):
-                print(msg)
-                msg_list.insert(END, msg)
             else:
                 print(aesKey[0])
                 print(msg)

@@ -6,6 +6,7 @@ from threading import Thread
 import sys
 import random
 import string
+from AESdecrypt import decrypt
 
 aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
@@ -23,7 +24,8 @@ def accept_incoming_connections():
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
     name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Pershendetje #ENC_DEC_PARTIALLY%s#ENC_DEC_PARTIALLY! shkruaj {quit} qe te dilni nga chati.' % name
+    name = decrypt(aesKey, name)
+    welcome = 'Pershendetje %s shkruaj {quit} qe te dilni nga chati.' % name
     client.send(bytes(welcome, "utf8"))
     msg = "%s has joined the chat!" % name
     broadcast(bytes(msg, "utf8"))

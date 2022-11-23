@@ -4,13 +4,18 @@ import socket
 from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 import sys
+import random
+import string
+
+aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
     while True:
         client, client_address = SERVER.accept()
         print("%s:%s has connected." % client_address)
-        client.send(bytes("Shkruaj emrin: ", "utf8"))
+        client.send(
+            bytes(':'.join(["Shtyp emrin: #ENCRYPTION_KEY", aesKey]), "utf8"))
         addresses[client] = client_address
         Thread(target=handle_client, args=(client,)).start()
 
@@ -18,7 +23,7 @@ def accept_incoming_connections():
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
     name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Pershendetje %s! shkruaj {quit} qe te dilni nga chati.' % name
+    welcome = 'Pershendetje #ENC_DEC_PARTIALLY%s#ENC_DEC_PARTIALLY! shkruaj {quit} qe te dilni nga chati.' % name
     client.send(bytes(welcome, "utf8"))
     msg = "%s has joined the chat!" % name
     broadcast(bytes(msg, "utf8"))

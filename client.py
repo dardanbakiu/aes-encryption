@@ -4,6 +4,9 @@ import socket
 from socket import AF_INET, SOCK_STREAM
 from threading import Thread
 from tkinter import *
+import re
+from AESencrypt import encrypt
+from AESdecrypt import decrypt
 
 firstclick = True
 
@@ -15,13 +18,25 @@ def on_entry_click(event):
         firstclick = False
         entry_field.delete(0, "end") # delete all the text in the entry
 
-
+aesKey = []
+        
 def receive():
     """Handles receiving of messages."""
     while True:
         try:
             msg = client_socket.recv(BUFSIZ).decode("utf8")
-            msg_list.insert(END, msg)
+            
+            if(re.search('#ENCRYPTION_KEY:', msg)):
+                msg = msg.split('#ENCRYPTION_KEY:')
+                msg_list.insert(END, msg[0])
+                aesKey.append(msg.pop())
+            elif(re.search('#ENCRYPTION_KEY:', msg)):
+                print(msg)
+                msg_list.insert(END, msg)
+            else:
+                print(aesKey[0])
+                print(msg)
+                msg_list.insert(END, msg)
         except OSError:  # Possibly client has left the chat.
             break
 
@@ -30,7 +45,10 @@ def send(event=None):  # event is passed by binders.
     """Handles sending of messages."""
     msg = my_msg.get()
     my_msg.set("")  # Clears input field.
+
+    msg = encrypt(msg, aesKey[0])
     client_socket.send(bytes(msg, "utf8"))
+
     if msg == "{quit}":
         client_socket.close()
         root.quit()

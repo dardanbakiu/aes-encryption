@@ -1,74 +1,31 @@
-#!/usr/bin/env python3
-"""Server for multithreaded (asynchronous) chat application."""
 import socket
-from socket import AF_INET, SOCK_STREAM
-from threading import Thread
-import sys
-import random
-import string
-from AESdecrypt import decrypt
 
-aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
-def accept_incoming_connections():
-    """Sets up handling for incoming clients."""
+def server_program():
+    # get the hostname
+    host = host = 'localhost'#socket.gethostname()
+    port = 5000  # initiate port no above 1024
+
+    server_socket = socket.socket()  # get instance
+    # look closely. The bind() function takes tuple as argument
+    server_socket.bind((host, port))  # bind host address and port together
+
+    # configure how many client the server can listen simultaneously
+    server_socket.listen(2)
+    conn, address = server_socket.accept()  # accept new connection
+    print("Connection from: " + str(address))
     while True:
-        client, client_address = SERVER.accept()
-        print("%s:%s has connected." % client_address)
-        client.send(
-            bytes(':'.join(["Shtyp emrin: #ENCRYPTION_KEY", aesKey]), "utf8"))
-        addresses[client] = client_address
-        Thread(target=handle_client, args=(client,)).start()
-
-
-def handle_client(client):  # Takes client socket as argument.
-    """Handles a single client connection."""
-    name = client.recv(BUFSIZ).decode("utf8")
-    name = decrypt(aesKey, name)
-    welcome = 'Pershendetje %s shkruaj {quit} qe te dilni nga chati.' % name
-    client.send(bytes(welcome, "utf8"))
-    msg = "%s has joined the chat!" % name
-    broadcast(bytes(msg, "utf8"))
-    clients[client] = name
-
-    while True:
-        msg = client.recv(BUFSIZ)
-        if msg != bytes("{quit}", "utf8"):
-            broadcast(msg, name+": ")
-        else:
-            client.send(bytes("{quit}", "utf8"))
-            client.close()
-            del clients[client]
-            if len(clients) == 0:
-                SERVER.close()
-                sys.exit(0)
-                break
-            broadcast(bytes("%s has left the chat." % name, "utf8"))
+        # receive data stream. it won't accept data packet greater than 1024 bytes
+        data = conn.recv(1024).decode()
+        if not data:
+            # if data is not received break
             break
+        print("from connected user: " + str(data))
+        data = input(' -> ')
+        conn.send(data.encode())  # send data to the client
+
+    conn.close()  # close the connection
 
 
-def broadcast(msg, prefix=""):  # prefix is for name identification.
-    """Broadcasts a message to all the clients."""
-    for sock in clients:
-        sock.send(bytes(prefix, "utf8")+msg)
-
-        
-clients = {}
-addresses = {}
-
-HOST = 'localhost'
-PORT = 5000
-BUFSIZ = 1024
-ADDR = (HOST, PORT)
-
-SERVER = socket.socket(AF_INET, SOCK_STREAM)
-SERVER.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-SERVER.bind(ADDR)
-
-if __name__ == "__main__":
-    SERVER.listen(5)
-    print("Waiting for connection...")
-    ACCEPT_THREAD = Thread(target=accept_incoming_connections)
-    ACCEPT_THREAD.start()
-    ACCEPT_THREAD.join()
-    SERVER.close()
+if __name__ == '__main__':
+    server_program()

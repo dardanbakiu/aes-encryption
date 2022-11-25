@@ -5,7 +5,7 @@ from AESencrypt import encrypt
 from AESdecrypt import decrypt
 
 key = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
-key = '1234567890123456'
+# key = '1234567890123456'
 
 def server_program():
     # get the hostname

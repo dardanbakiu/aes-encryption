@@ -1,5 +1,8 @@
 import socket
+from AESencrypt import encrypt
+from AESdecrypt import decrypt
 
+key = '1234567890123456'
 
 def client_program():
     host = 'localhost'#socket.gethostname()  # as both code is running on same pc
@@ -13,10 +16,11 @@ def client_program():
     while message.lower().strip() != 'bye':
         client_socket.send(message.encode())  # send message
         data = client_socket.recv(1024).decode()  # receive response
+        if 'DO_NOT_DECRYPT' not in data:
+          decryptedDate = decrypt(key, data)
+          print('Received from server: ' + decryptedDate)  # show in terminal
 
-        print('Received from server: ' + data)  # show in terminal
-
-        message = input(" -> ")  # again take input
+          message = input(" -> ")  # again take input
 
     client_socket.close()  # close the connection
 

@@ -1,5 +1,11 @@
 import socket
+import random
+import string
+from AESencrypt import encrypt
+from AESdecrypt import decrypt
 
+key = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+key = '1234567890123456'
 
 def server_program():
     # get the hostname
@@ -14,6 +20,10 @@ def server_program():
     server_socket.listen(2)
     conn, address = server_socket.accept()  # accept new connection
     print("Connection from: " + str(address))
+
+    modKey = ''.join([key, 'DO_NOT_DECRYPT'])
+    conn.send(modKey.encode())
+
     while True:
         # receive data stream. it won't accept data packet greater than 1024 bytes
         data = conn.recv(1024).decode()
@@ -22,6 +32,7 @@ def server_program():
             break
         print("from connected user: " + str(data))
         data = input(' -> ')
+        data = encrypt(data, key)
         conn.send(data.encode())  # send data to the client
 
     conn.close()  # close the connection

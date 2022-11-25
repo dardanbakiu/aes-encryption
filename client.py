@@ -16,11 +16,12 @@ def client_program():
     while message.lower().strip() != 'bye':
         client_socket.send(message.encode())  # send message
         data = client_socket.recv(1024).decode()  # receive response
-        if 'DO_NOT_DECRYPT' not in data: #ktu eshte case masi te kryn pune me key
+        if 'DO_NOT_DECRYPT' not in data: #ktu eshte case pasi te merret key
           decryptedDate = decrypt(key, data)
           print('Received from server: ' + decryptedDate)  # show in terminal
 
           message = input(" -> ")  # again take input
+          # message = encrypt(message, key)
         else:
             key = data.split('DO_NOT_DECRYPT')[0]
 

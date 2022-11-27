@@ -40,7 +40,6 @@ def handle_client(client):  # Argumenti eshte soketa e klientit.
 def broadcast(msg, prefix=""):
     # Dergo mesazhin tek te gjithe klientet e lidhur
     for sock in clients:
-        print(bytes(prefix, "utf8")+msg)
         sock.send(bytes(encryptBy16(prefix), "utf8")+msg)
     # Dhe ruaje ate tek nje text file
     if prefix != '':

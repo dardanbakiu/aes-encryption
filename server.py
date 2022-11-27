@@ -9,7 +9,7 @@ from AESencrypt import encrypt
 from AESdecrypt import decrypt
 from textwrap import wrap
 
-aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
 
 def accept_incoming_connections():

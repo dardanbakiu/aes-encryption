@@ -1,5 +1,5 @@
-from AESencryptfunc import * #import AESencryptfunc module to use functions created for this program
-import math #import math module to use function such as ceiling
+from AESencryptfunc import * 
+import math
 
 # set passphrase to be a 16 characters, 16 characters * 8 bits = 128 bits strength
 def encrypt(message, PassPhrase):

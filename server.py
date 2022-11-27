@@ -5,8 +5,11 @@ from threading import Thread
 import sys
 import random
 import string
+from AESencrypt import encrypt
+from AESdecrypt import decrypt
+from textwrap import wrap
 
-aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+aesKey = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
 
 
 def accept_incoming_connections():
@@ -21,34 +24,24 @@ def accept_incoming_connections():
 
 
 def handle_client(client):  # Argumenti eshte soketa e klientit.
-    name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Miresevjen %s! Nese deshiron te largohesh, vetem shkruaj {dil}!' % name
-    client.send(bytes(welcome, "utf8"))
+    name = decryptBy32(client.recv(BUFSIZ).decode("utf8"))
+    welcome = "Miresevjen %s ne Broadcast AES Chat!" % name
+    client.send(bytes(encryptBy16(welcome), "utf8"))
     msg = "%s eshte tani i lidhur!" % name
-    broadcast(bytes(msg, "utf8"))
+    broadcast(bytes(encryptBy16(msg), "utf8"))
     clients[client] = name
 
     while True:
         msg = client.recv(BUFSIZ)
-        if msg != bytes("{dil}", "utf8"):
-            broadcast(msg, name+": ")
-        else:
-            client.send(bytes("{dil}", "utf8"))
-            client.close()
-            del clients[client]
-            if len(clients) == 0:
-                SERVER.close()
-                sys.exit(0)
-                break
-            broadcast(bytes("%s u shkyq!" % name, "utf8"))
-            break
+        broadcast(msg, name+": ")
 
 
 # prefix perdoret per identifikim te emrit te perdoruesit.
 def broadcast(msg, prefix=""):
-    # Dergo mesazhin tek te gjithe klientet e lidhur dhe ruaje tek nje file
+    # Dergo mesazhin tek te gjithe klientet e lidhur
     for sock in clients:
-        sock.send(bytes(prefix, "utf8")+msg)
+        print(bytes(prefix, "utf8")+msg)
+        sock.send(bytes(encryptBy16(prefix), "utf8")+msg)
     # Dhe ruaje ate tek nje text file
     if prefix != '':
         with open('mesazhet.txt', 'a') as saveAt:
@@ -56,6 +49,32 @@ def broadcast(msg, prefix=""):
             saveAt.write('\n')
             saveAt.close()
 
+
+def encryptBy16(msg):
+    #Ndaje msg nga 16 karaktere
+    msg_list = wrap(
+    msg,
+    16,
+    drop_whitespace=False,
+    break_on_hyphens=False
+    )
+    encMsg = ''
+    for msgPiece in msg_list:
+        encMsg = encMsg + encrypt(msgPiece, aesKey)
+    return encMsg
+    
+def decryptBy32(msg):
+    #Ndaje msg nga 16 karaktere
+    msg_list = wrap(
+    msg,
+    32,
+    drop_whitespace=True,
+    break_on_hyphens=False
+    )
+    decMsg = ''
+    for msgPiece in msg_list:
+        decMsg = decMsg + decrypt(aesKey, msgPiece)
+    return decMsg
 
 clients = {}
 addresses = {}

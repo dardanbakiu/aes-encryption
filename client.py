@@ -5,6 +5,7 @@ from threading import Thread
 from tkinter import *
 from AESencrypt import encrypt
 from AESdecrypt import decrypt
+from textwrap import wrap
 
 firstclick = True
 
@@ -26,30 +27,48 @@ def receive():
                 msg, getAesKey = client_socket.recv(
                     BUFSIZ).decode("utf8").split('\n')
                 aesKey = getAesKey
-                print(aesKey)
                 msg_list.insert(END, msg)
             else:
-                #encMsg = client_socket.recv(BUFSIZ).decode("utf8")
-                #dcMsg = decrypt(encMsg, asesKey)
-                #print(dcMsg)
-                msg = client_socket.recv(BUFSIZ).decode("utf8")
-                msg_list.insert(END, msg)
+                encMsg = client_socket.recv(BUFSIZ).decode("utf8")
+                dcMsg = decryptBy32(encMsg)
+                msg_list.insert(END, dcMsg)
         except OSError:
             break
+               
+               
+def encryptBy16(msg):
+    #Ndaje msg nga 16 karaktere
+    msg_listE = wrap(
+    msg,
+    16,
+    drop_whitespace=False,
+    break_on_hyphens=False
+    )
+    encMsg = ''
+    for msgPiece in msg_listE:
+        encMsg = encMsg + encrypt(msgPiece, aesKey)
+    return encMsg
+    
+def decryptBy32(msg):
+    #Ndaje msg nga 16 karaktere
+    msg_listD = wrap(
+    msg,
+    32,
+    drop_whitespace=True,
+    break_on_hyphens=False
+    )
+    decMsg = ''
+    for msgPiece in msg_listD:
+        decMsg = decMsg + decrypt(aesKey, msgPiece)
+    return decMsg
 
 
 def send(event=None):
     global aesKey
-    msg = encrypt(my_msg.get(), aesKey)
+    msg = encryptBy16(my_msg.get())
     my_msg.set("")  # Clears input field.
     client_socket.send(bytes(msg, "utf8"))
-    if msg == "{dil}":
-        client_socket.close()
-        root.quit()
 
-def on_closing(event=None):
-    my_msg.set("{dil}")
-    send()
 
 root = Tk()
 root.title("ChatIO")
@@ -72,7 +91,6 @@ entry_field.pack()
 send_button = Button(root, text="Dërgo", command=send)
 send_button.pack()
 
-root.protocol("WM_DELETE_WINDOW", on_closing)
 
 #Socket 
 HOST = 'localhost'
